@@ -2,7 +2,7 @@ package main
 
 import (
 	"blog_service/model"
-	"fmt"
+	"blog_service/web"
 	"log"
 )
 
@@ -12,5 +12,9 @@ func main() {
 		log.Fatalf("init DB err %s \n", err.Error())
 	}
 
-	fmt.Println("!@#!@#")
+	err = web.InitHttp()
+	if err != nil {
+		log.Fatalf("http server err %s \n", err.Error())
+	}
+
 }

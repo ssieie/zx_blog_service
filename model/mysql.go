@@ -8,7 +8,7 @@ import (
 var DB *sql.DB
 
 func InitDB() (err error) {
-	uri := "root:Zx200919.@tcp(47.109.17.168:3306)/zxblog"
+	uri := "xxx:xxx.@tcp(xx.xx.17.xx:xxxx)/xxxx"
 	DB, err = sql.Open("mysql", uri)
 	if err != nil {
 		return err
