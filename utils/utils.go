@@ -1,11 +1,15 @@
 package utils
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 func ParsePostData(data io.ReadCloser) (rData map[string]interface{}, err error) {
@@ -38,18 +42,37 @@ func JSON(res Z) (data []byte) {
 }
 
 func VerifyPostParams(data map[string]interface{}) bool {
-	data["timestamp"] = int(data["timestamp"].(float64))
 
-	var sign string
+	var str = "key=ZhaoXin&"
 
-	for key, value := range data {
-		if key == "sign" {
-			sign = data[key].(string)
-			delete(data, key)
-		}
-		fmt.Println(key, value)
+	var arr []string
+
+	for key := range data {
+		arr = append(arr, key)
 	}
 
-	fmt.Println(data, sign)
+	sort.Strings(arr)
+
+	for _, key := range arr {
+		if key == "sign" {
+			continue
+		}
+		switch data[key].(type) {
+		case string:
+			str += key + "=" + data[key].(string) + "&"
+		case int:
+			str += key + "=" + strconv.Itoa(data[key].(int)) + "&"
+		case bool:
+			str += key + "=" + strconv.FormatBool(data[key].(bool)) + "&"
+		case float64:
+			str += key + "=" + strconv.FormatFloat(data[key].(float64), 'g', 10, 64) + "&"
+		}
+	}
+
+	sign := strings.ToUpper(fmt.Sprintf("%x", md5.Sum([]byte(strings.TrimSuffix(str, "&")))))
+
+	if sign != data["sign"] {
+		return false
+	}
 	return true
 }

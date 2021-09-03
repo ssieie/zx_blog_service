@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"blog_service/utils"
+	X "blog_service/utils"
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
@@ -35,7 +35,7 @@ func Verify(next http.Handler) http.Handler {
 
 		err := json.Unmarshal(bodyBytes, &r)
 		if err != nil {
-			_, _ = writer.Write(utils.JSON(utils.Z{
+			_, _ = writer.Write(X.JSON(X.Z{
 				"code":    1,
 				"message": "请求参数错误",
 			}))
@@ -45,18 +45,18 @@ func Verify(next http.Handler) http.Handler {
 		params, ok := r.(map[string]interface{})
 
 		if !ok {
-			_, _ = writer.Write(utils.JSON(utils.Z{
+			_, _ = writer.Write(X.JSON(X.Z{
 				"code":    1,
 				"message": "请求参数错误",
 			}))
 			return
 		}
 
-		ok = utils.VerifyPostParams(params)
+		ok = X.VerifyPostParams(params)
 		if !ok {
-			_, _ = writer.Write(utils.JSON(utils.Z{
+			_, _ = writer.Write(X.JSON(X.Z{
 				"code":    1,
-				"message": "验证不通过",
+				"message": "非法请求",
 			}))
 			return
 		}
