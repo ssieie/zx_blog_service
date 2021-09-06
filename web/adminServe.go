@@ -6,9 +6,12 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -121,5 +124,67 @@ func (a *AdminServe) Login(w http.ResponseWriter, r *http.Request) {
 			"token": u.Token,
 		},
 	}))
+
+}
+
+func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
+
+	var param = make(map[string]interface{})
+	param["token"] = r.FormValue("token")
+	param["timestamp"] = r.FormValue("timestamp")
+	param["sign"] = r.FormValue("sign")
+	isOk := X.VerifyPostParams(param)
+
+	if !isOk {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "非法调用",
+		}))
+		return
+	}
+
+	_ = r.ParseMultipartForm(32 << 20)
+
+	if r.MultipartForm.File != nil {
+		// formName 文件的名字
+		for formName := range r.MultipartForm.File {
+			file, header, err := r.FormFile(formName)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+			defer func(file multipart.File) {
+				_ = file.Close()
+			}(file)
+
+			destFile, err := os.Create("c:/Users/02/Desktop/" + header.Filename)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+			defer func(destFile *os.File) {
+				_ = destFile.Close()
+			}(destFile)
+
+			_, err = io.Copy(destFile, file)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+		}
+
+		// test
+		test := make(map[string]string)
+		test["url"] = "http://127.0.0.1:8081/img/login-bg.1e0bc130.jpg"
+		test["alt"] = "hahahahh"
+		test["href"] = "https://www.baidu.com"
+		var a []map[string]string
+		a = append(a, test)
+
+		_, _ = w.Write(X.JSON(X.Z{
+			"errno": 0,
+			"data":  a,
+		}))
+	}
 
 }
