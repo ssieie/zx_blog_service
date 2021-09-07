@@ -127,6 +127,81 @@ func (a *AdminServe) Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// 首页信息
+
+func (a *AdminServe) HomeInfo(w http.ResponseWriter, r *http.Request) {
+	data, err := X.ParsePostData(r.Body)
+	if err != nil {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "请求参数错误",
+		}))
+		return
+	}
+
+	var (
+		loginTime   string
+		address     string
+		addressCode string
+	)
+
+	str := "select last_login_time,last_login_address,last_login_address_code from admin where token=?"
+	err = model.DB.QueryRow(str, data["token"]).Scan(&loginTime, &address, &addressCode)
+	if err != nil {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "登录过期",
+		}))
+		return
+	}
+
+	_, _ = w.Write(X.JSON(X.Z{
+		"code": 0,
+		"data": map[string]string{
+			"last_time":         loginTime,
+			"last_address":      address,
+			"last_address_code": addressCode,
+		},
+	}))
+}
+
+// 获取当地天气
+
+func (a *AdminServe) getWeather(w http.ResponseWriter, r *http.Request) {
+	data, err := X.ParsePostData(r.Body)
+	if err != nil {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "参数错误",
+		}))
+		return
+	}
+	fmt.Println(data["code"].(string))
+
+	get, err := http.Get("https://api.map.baidu.com/weather/v1/?district_id=500112&data_type=all&ak=5yHxHfaWylEVMVlY5cO1npKGeACFT7mn")
+	if err != nil {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "天气获取错误",
+		}))
+		return
+	}
+	defer get.Body.Close()
+
+	all, err := ioutil.ReadAll(get.Body)
+	if err != nil {
+		_, _ = w.Write(X.JSON(X.Z{
+			"code":    1,
+			"message": "天气获取错误",
+		}))
+		return
+	}
+
+	_, _ = w.Write(all)
+}
+
+// 富文本图片上传处理
+
 func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 
 	var param = make(map[string]interface{})
@@ -147,6 +222,8 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 
 	if r.MultipartForm.File != nil {
 		// formName 文件的名字
+		var files []map[string]string
+
 		for formName := range r.MultipartForm.File {
 			file, header, err := r.FormFile(formName)
 			if err != nil {
@@ -156,8 +233,11 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 			defer func(file multipart.File) {
 				_ = file.Close()
 			}(file)
+			saveName := fmt.Sprintf("%d%s", time.Now().UnixNano(), header.Filename)
 
-			destFile, err := os.Create("c:/Users/02/Desktop/" + header.Filename)
+			//destFile, err := os.Create("/home/data/nginx_web/other/img/" + saveName)
+			destFile, err := os.Create("c:/Users/02/Desktop/test/H5/testhtml/image/" + saveName)
+
 			if err != nil {
 				log.Println(err)
 				break
@@ -171,19 +251,17 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				break
 			}
+
+			fileDetail := make(map[string]string)
+			fileDetail["url"] = "http://127.0.0.1:5500/image/" + saveName
+			//fileDetail["url"] = "http://47.109.17.168:8880/img/" + saveName
+			fileDetail["alt"] = saveName
+			fileDetail["href"] = ""
+			files = append(files, fileDetail)
 		}
-
-		// test
-		test := make(map[string]string)
-		test["url"] = "http://127.0.0.1:8081/img/login-bg.1e0bc130.jpg"
-		test["alt"] = "hahahahh"
-		test["href"] = "https://www.baidu.com"
-		var a []map[string]string
-		a = append(a, test)
-
 		_, _ = w.Write(X.JSON(X.Z{
 			"errno": 0,
-			"data":  a,
+			"data":  files,
 		}))
 	}
 
