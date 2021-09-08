@@ -1,0 +1,13 @@
+{
+  "name": "my_blog_service",
+  "author": "ZhaoXin",
+  "version": "0.0.1",
+  "host": ":9999",
+  "localhostStaticAddress": "http://127.0.0.1:5500/image/",
+  "localhostFilePath": "c:/Users/02/Desktop/test/H5/testhtml/image/",
+  "remoteStaticAddress": "http://47.109.17.168:8880/img/",
+  "remoteFilePath": "/home/data/nginx_web/other/img/",
+  "mysqlUri": "root:Zx200919.@tcp(47.109.17.168:3306)/zxblog",
+  "dev": "local",
+  "describe": " ______ __    __       _____   _       _____   _____  \n|___  / \\ \\  / /      |  _  \\ | |     /  _  \\ /  ___| \n   / /   \\ \\/ /       | |_| | | |     | | | | | |     \n  / /     }  {        |  _  { | |     | | | | | |  _  \n / /__   / /\\ \\       | |_| | | |___  | |_| | | |_| | \n/_____| /_/  \\_\\      |_____/ |_____| \\_____/ \\_____/  \n"
+}

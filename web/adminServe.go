@@ -1,6 +1,7 @@
 package web
 
 import (
+	"blog_service/config"
 	"blog_service/model"
 	X "blog_service/utils"
 	"crypto/md5"
@@ -28,6 +29,8 @@ type AdminLogin struct {
 	CityCode  string
 	Token     string
 }
+
+// 管理员登录
 
 func (a *AdminServe) Login(w http.ResponseWriter, r *http.Request) {
 
@@ -149,7 +152,7 @@ func (a *AdminServe) HomeInfo(w http.ResponseWriter, r *http.Request) {
 	err = model.DB.QueryRow(str, data["token"]).Scan(&loginTime, &address, &addressCode)
 	if err != nil {
 		_, _ = w.Write(X.JSON(X.Z{
-			"code":    1,
+			"code":    9,
 			"message": "登录过期",
 		}))
 		return
@@ -176,9 +179,10 @@ func (a *AdminServe) getWeather(w http.ResponseWriter, r *http.Request) {
 		}))
 		return
 	}
-	fmt.Println(data["code"].(string))
 
-	get, err := http.Get("https://api.map.baidu.com/weather/v1/?district_id=500112&data_type=all&ak=5yHxHfaWylEVMVlY5cO1npKGeACFT7mn")
+	url := fmt.Sprintf("https://api.map.baidu.com/weather/v1/?district_id=%s&data_type=all&ak=5yHxHfaWylEVMVlY5cO1npKGeACFT7mn", data["code"].(string))
+
+	get, err := http.Get(url)
 	if err != nil {
 		_, _ = w.Write(X.JSON(X.Z{
 			"code":    1,
@@ -235,8 +239,13 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 			}(file)
 			saveName := fmt.Sprintf("%d%s", time.Now().UnixNano(), header.Filename)
 
-			//destFile, err := os.Create("/home/data/nginx_web/other/img/" + saveName)
-			destFile, err := os.Create("c:/Users/02/Desktop/test/H5/testhtml/image/" + saveName)
+			var filePath string
+			if config.Dev == "local" {
+				filePath = config.LocalFilePath
+			} else {
+				filePath = config.RemoteFilePath
+			}
+			destFile, err := os.Create(filePath + saveName)
 
 			if err != nil {
 				log.Println(err)
@@ -253,8 +262,11 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fileDetail := make(map[string]string)
-			fileDetail["url"] = "http://127.0.0.1:5500/image/" + saveName
-			//fileDetail["url"] = "http://47.109.17.168:8880/img/" + saveName
+			if config.Dev == "local" {
+				fileDetail["url"] = config.LocalAddress + saveName
+			} else {
+				fileDetail["url"] = config.RemoteAddress + saveName
+			}
 			fileDetail["alt"] = saveName
 			fileDetail["href"] = ""
 			files = append(files, fileDetail)
@@ -264,5 +276,19 @@ func (a *AdminServe) ImageLoad(w http.ResponseWriter, r *http.Request) {
 			"data":  files,
 		}))
 	}
+}
+
+// 发布文章
+
+type Article struct {
+	ArTitle      string
+	ArCategoryId int
+	ArTag        string
+	ArAuthor     string
+	ArCreTime    string
+	ArImages     string
+}
+
+func (a *AdminServe) ReleaseArticle() {
 
 }

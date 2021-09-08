@@ -1,6 +1,7 @@
 package model
 
 import (
+	"blog_service/config"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -8,8 +9,7 @@ import (
 var DB *sql.DB
 
 func InitDB() (err error) {
-	uri := "xxx:xxx.@tcp(xx.xx.17.xx:xx)/zxblog"
-	DB, err = sql.Open("mysql", uri)
+	DB, err = sql.Open("mysql", config.MysqlUri)
 	if err != nil {
 		return err
 	}

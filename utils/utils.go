@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -75,4 +77,22 @@ func VerifyPostParams(data map[string]interface{}) bool {
 		return false
 	}
 	return true
+}
+
+func ParsJsonFile() map[string]interface{} {
+	conf, err := os.Open("./config.json")
+	if err != nil {
+		log.Fatalf("打开配置文件错误:%s", err)
+	}
+	data, err := ioutil.ReadAll(conf)
+	if err != nil {
+		log.Fatalf("读取配置文件错误:%s", err)
+	}
+	var a interface{}
+	err = json.Unmarshal(data, &a)
+	if err != nil {
+		log.Fatalf("读取配置文件错误:%s", err)
+	}
+
+	return a.(map[string]interface{})
 }

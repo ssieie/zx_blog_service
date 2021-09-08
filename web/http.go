@@ -1,8 +1,8 @@
 package web
 
 import (
+	"blog_service/config"
 	"blog_service/middleware"
-	"fmt"
 	"net/http"
 )
 
@@ -15,8 +15,7 @@ func InitHttp() (err error) {
 	http.Handle("/homeInfo", middleware.Cross(middleware.Verify(http.HandlerFunc(admin.HomeInfo))))
 	http.Handle("/getWeather", middleware.Cross(middleware.Verify(http.HandlerFunc(admin.getWeather))))
 
-	fmt.Println("go server start running...")
-	err = http.ListenAndServe(":9999", nil)
+	err = http.ListenAndServe(config.Host, nil)
 
 	if err != nil {
 		return err
